@@ -1,0 +1,27 @@
+variables:
+  infraAcrServiceConnection: infra-acr-service-connection
+  akvServiceManagerConnection: infra-akv-service-manager-connection
+trigger:
+  - master
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+steps:
+  - task: Docker@2
+    displayName: 'Login to ACR'
+    inputs:
+      command: login
+      containerRegistry: $(infraAcrServiceConnection)
+
+  - task: AzureCLI@2
+    displayName: make all
+    inputs:
+      azureSubscription: $(akvServiceManagerConnection)
+      scriptType: 'pscore'
+      scriptLocation: 'inlineScript'
+      inlineScript: |
+        az account set --subscription 9c2d324b-47c7-4f19-ae87-16f0e8196b09
+        az keyvault secret download --file AZ-login-parameters --encoding base64 --vault-name CycloneKeyVault --name AZ-login-parameters
+        docker run --rm -w=/home --env-file AZ-login-parameters --mount type=bind,source=$(pwd)/,target=/home infra.azurecr.io/opsbox:latest make all
+        rm -rf AZ-login-parameters
