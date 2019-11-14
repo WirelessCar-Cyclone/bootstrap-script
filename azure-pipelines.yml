@@ -15,7 +15,7 @@ steps:
       containerRegistry: $(infraAcrServiceConnection)
 
   - task: AzureCLI@2
-    displayName: make all
+    displayName: make
     inputs:
       azureSubscription: $(akvServiceManagerConnection)
       scriptType: 'pscore'
